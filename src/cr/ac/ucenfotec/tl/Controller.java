@@ -3,9 +3,9 @@ package tl;
 import cr.ac.ucenfotec.bl.entities.Departamento;
 import cr.ac.ucenfotec.bl.entities.Ticket;
 import cr.ac.ucenfotec.bl.entities.Usuario;
-import cr.ac.ucenfotec.bl.handlers.DepartamentoHandler;
-import cr.ac.ucenfotec.bl.handlers.TicketHandler;
-import cr.ac.ucenfotec.bl.handlers.UsuarioHandler;
+import cr.ac.ucenfotec.bl.logic.GestorDepartamento;
+import cr.ac.ucenfotec.bl.logic.GestorTicket;
+import cr.ac.ucenfotec.bl.logic.GestorUsuario;
 import cr.ac.ucenfotec.ui.UI;
 
 import java.io.IOException;
@@ -16,9 +16,9 @@ public class Controller {
     private UI interfaz = new UI();
     
     // Handlers para manejar las entidades
-    private final UsuarioHandler usuarioHandler = new UsuarioHandler();
-    private final DepartamentoHandler departamentoHandler = new DepartamentoHandler();
-    private final TicketHandler ticketHandler = new TicketHandler();
+    private final GestorUsuario usuarioHandler = new GestorUsuario();
+    private final GestorDepartamento departamentoHandler = new GestorDepartamento();
+    private final GestorTicket ticketHandler = new GestorTicket();
     
     // Usuario actualmente autenticado
     private Usuario usuarioActual = null;
@@ -142,35 +142,27 @@ public class Controller {
     // ==================== MENÚS ====================
     
     private void mostrarBienvenida() {
-        interfaz.imprimirMensaje("\n╔════════════════════════════════════════════╗");
-        interfaz.imprimirMensaje("║          Gestión de Tickets de Soporte     ║");
-        interfaz.imprimirMensaje("╚════════════════════════════════════════════╝");
+        interfaz.imprimirMensaje("Gestión de Tickets de Soporte");
     }
 
     private void mostrarMenuAcceso() {
-        interfaz.imprimirMensaje("\n┌─────────────────────────────────────┐");
-        interfaz.imprimirMensaje("│         MENÚ DE ACCESO              │");
-        interfaz.imprimirMensaje("├─────────────────────────────────────┤");
-        interfaz.imprimirMensaje("│ 1. Iniciar Sesión                   │");
-        interfaz.imprimirMensaje("│ 2. Registrarse                      │");
-        interfaz.imprimirMensaje("│ 3. Salir                            │");
-        interfaz.imprimirMensaje("└─────────────────────────────────────┘");
+        interfaz.imprimirMensaje("MENÚ");
+        interfaz.imprimirMensaje("1. Iniciar Sesión");
+        interfaz.imprimirMensaje("2. Registrarse");
+        interfaz.imprimirMensaje("3. Salir");
         interfaz.imprimirMensaje("Seleccione una opción: ");
     }
 
     private void mostrarMenuUsuario() throws IOException {
         int opcion = -1;
         do {
-            interfaz.imprimirMensaje("\n┌─────────────────────────────────────┐");
-            interfaz.imprimirMensaje("│         MENÚ USUARIO                │");
-            interfaz.imprimirMensaje("├─────────────────────────────────────┤");
-            interfaz.imprimirMensaje("│ 1. Crear Nuevo Ticket               │");
-            interfaz.imprimirMensaje("│ 2. Ver Mis Tickets                  │");
-            interfaz.imprimirMensaje("│ 3. Ver Todos los Tickets            │");
-            interfaz.imprimirMensaje("│ 4. Ver Departamentos                │");
-            interfaz.imprimirMensaje("│ 5. Mi Perfil                        │");
-            interfaz.imprimirMensaje("│ 6. Cerrar Sesión                    │");
-            interfaz.imprimirMensaje("└─────────────────────────────────────┘");
+            interfaz.imprimirMensaje("MENÚ USUARIO");
+            interfaz.imprimirMensaje("1. Crear Nuevo Ticket");
+            interfaz.imprimirMensaje("2. Ver Mis Tickets");
+            interfaz.imprimirMensaje("3. Ver Todos los Tickets");
+            interfaz.imprimirMensaje("4. Ver Departamentos");
+            interfaz.imprimirMensaje("5. Mi Perfil");
+            interfaz.imprimirMensaje("6. Cerrar Sesión");
             interfaz.imprimirMensaje("Seleccione una opción: ");
             opcion = interfaz.leerOpcion();
             procesarOpcionUsuario(opcion);
@@ -180,17 +172,14 @@ public class Controller {
     private void mostrarMenuSoporte() throws IOException {
         int opcion = -1;
         do {
-            interfaz.imprimirMensaje("\n┌─────────────────────────────────────┐");
-            interfaz.imprimirMensaje("│         MENÚ SOPORTE                │");
-            interfaz.imprimirMensaje("├─────────────────────────────────────┤");
-            interfaz.imprimirMensaje("│ 1. Ver Todos los Tickets            │");
-            interfaz.imprimirMensaje("│ 2. Ver Tickets por Estado           │");
-            interfaz.imprimirMensaje("│ 3. Ver Tickets por Prioridad        │");
-            interfaz.imprimirMensaje("│ 4. Actualizar Estado de Ticket      │");
-            interfaz.imprimirMensaje("│ 5. Ver Estadísticas                 │");
-            interfaz.imprimirMensaje("│ 6. Mi Perfil                        │");
-            interfaz.imprimirMensaje("│ 7. Cerrar Sesión                    │");
-            interfaz.imprimirMensaje("└─────────────────────────────────────┘");
+            interfaz.imprimirMensaje("MENÚ SOPORTE");
+            interfaz.imprimirMensaje("1. Ver Todos los Tickets");
+            interfaz.imprimirMensaje("2. Ver Tickets por Estado");
+            interfaz.imprimirMensaje("3. Ver Tickets por Prioridad");
+            interfaz.imprimirMensaje("4. Actualizar Estado de Ticket");
+            interfaz.imprimirMensaje("5. Ver Estadísticas");
+            interfaz.imprimirMensaje("6. Mi Perfil");
+            interfaz.imprimirMensaje("7. Cerrar Sesión");
             interfaz.imprimirMensaje("Seleccione una opción: ");
             opcion = interfaz.leerOpcion();
             procesarOpcionSoporte(opcion);
@@ -200,16 +189,13 @@ public class Controller {
     private void mostrarMenuAdmin() throws IOException {
         int opcion = -1;
         do {
-            interfaz.imprimirMensaje("\n┌─────────────────────────────────────┐");
-            interfaz.imprimirMensaje("│       MENÚ ADMINISTRADOR            │");
-            interfaz.imprimirMensaje("├─────────────────────────────────────┤");
-            interfaz.imprimirMensaje("│ 1. Gestión de Usuarios              │");
-            interfaz.imprimirMensaje("│ 2. Gestión de Departamentos         │");
-            interfaz.imprimirMensaje("│ 3. Gestión de Tickets               │");
-            interfaz.imprimirMensaje("│ 4. Ver Estadísticas                 │");
-            interfaz.imprimirMensaje("│ 5. Reportes                         │");
-            interfaz.imprimirMensaje("│ 6. Cerrar Sesión                    │");
-            interfaz.imprimirMensaje("└─────────────────────────────────────┘");
+            interfaz.imprimirMensaje("MENÚ ADMINISTRADOR");
+            interfaz.imprimirMensaje("1. Gestión de Usuarios");
+            interfaz.imprimirMensaje("2. Gestión de Departamentos");
+            interfaz.imprimirMensaje("3. Gestión de Tickets");
+            interfaz.imprimirMensaje("4. Ver Estadísticas");
+            interfaz.imprimirMensaje("5. Reportes");
+            interfaz.imprimirMensaje("6. Cerrar Sesión");
             interfaz.imprimirMensaje("Seleccione una opción: ");
             opcion = interfaz.leerOpcion();
             procesarOpcionAdmin(opcion);
@@ -219,7 +205,7 @@ public class Controller {
     // ==================== MÉTODOS DE AUTENTICACIÓN ====================
     
     private void iniciarSesion() throws IOException {
-        interfaz.imprimirMensaje("\n=== INICIAR SESIÓN ===");
+        interfaz.imprimirMensaje("\nINICIAR SESIÓN");
         interfaz.imprimirMensaje("Correo: ");
         String correo = interfaz.leerTexto();
         interfaz.imprimirMensaje("Contraseña: ");
@@ -405,14 +391,11 @@ public class Controller {
     private void gestionUsuarios() throws IOException {
         int opcion = -1;
         do {
-            interfaz.imprimirMensaje("\n┌─────────────────────────────────────┐");
-            interfaz.imprimirMensaje("│     GESTIÓN DE USUARIOS             │");
-            interfaz.imprimirMensaje("├─────────────────────────────────────┤");
-            interfaz.imprimirMensaje("│ 1. Listar Usuarios                  │");
-            interfaz.imprimirMensaje("│ 2. Cambiar Rol de Usuario           │");
-            interfaz.imprimirMensaje("│ 3. Eliminar Usuario                 │");
-            interfaz.imprimirMensaje("│ 4. Volver                           │");
-            interfaz.imprimirMensaje("└─────────────────────────────────────┘");
+            interfaz.imprimirMensaje("GESTIÓN DE USUARIOS");
+            interfaz.imprimirMensaje("1. Listar Usuarios");
+            interfaz.imprimirMensaje("2. Cambiar Rol de Usuario");
+            interfaz.imprimirMensaje("3. Eliminar Usuario");
+            interfaz.imprimirMensaje("4. Volver");
             interfaz.imprimirMensaje("Seleccione una opción: ");
             opcion = interfaz.leerOpcion();
             
@@ -438,15 +421,12 @@ public class Controller {
     private void gestionDepartamentos() throws IOException {
         int opcion = -1;
         do {
-            interfaz.imprimirMensaje("\n┌─────────────────────────────────────┐");
-            interfaz.imprimirMensaje("│   GESTIÓN DE DEPARTAMENTOS          │");
-            interfaz.imprimirMensaje("├─────────────────────────────────────┤");
-            interfaz.imprimirMensaje("│ 1. Listar Departamentos             │");
-            interfaz.imprimirMensaje("│ 2. Crear Departamento               │");
-            interfaz.imprimirMensaje("│ 3. Modificar Departamento           │");
-            interfaz.imprimirMensaje("│ 4. Eliminar Departamento            │");
-            interfaz.imprimirMensaje("│ 5. Volver                           │");
-            interfaz.imprimirMensaje("└─────────────────────────────────────┘");
+            interfaz.imprimirMensaje("GESTIÓN DE DEPARTAMENTOS");
+            interfaz.imprimirMensaje("1. Listar Departamentos");
+            interfaz.imprimirMensaje("2. Crear Departamento");
+            interfaz.imprimirMensaje("3. Modificar Departamento");
+            interfaz.imprimirMensaje("4. Eliminar Departamento");
+            interfaz.imprimirMensaje("5. Volver");
             interfaz.imprimirMensaje("Seleccione una opción: ");
             opcion = interfaz.leerOpcion();
             
