@@ -1,4 +1,4 @@
-import tl.Controller;
+import cr.ac.ucenfotec.tl.Controller;
 import java.io.IOException;
 
 public class MainUI {

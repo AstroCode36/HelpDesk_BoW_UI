@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="HelpDesk_BoW">
     <CLASSES>
-      <root url="jar://$USER_HOME$/Desktop/testeando/HelpDesk_BoW/out/artifacts/HelpDesk_BoW_jar/HelpDesk_BoW.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../HelpDesk_BoW/out/artifacts/HelpDesk_BoW_jar/HelpDesk_BoW.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
