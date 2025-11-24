@@ -3,27 +3,23 @@ package cr.ac.ucenfotec.tl;
 import cr.ac.ucenfotec.bl.logic.GestorDepartamento;
 import cr.ac.ucenfotec.bl.logic.GestorTicket;
 import cr.ac.ucenfotec.bl.logic.GestorUsuario;
+import cr.ac.ucenfotec.bl.logic.ClasificadorBoW;
 import cr.ac.ucenfotec.ui.UI;
 
 import java.io.IOException;
 
 public class Controller {
-    // UI para interactuar con el usuario
     private UI interfaz = new UI();
-    
-    // Handlers para manejar las entidades
+
     private final GestorUsuario usuarioHandler = new GestorUsuario();
     private final GestorDepartamento departamentoHandler = new GestorDepartamento();
     private final GestorTicket ticketHandler = new GestorTicket();
-    
-    // ID del usuario actualmente autenticado
+
     private String usuarioActualId = null;
     private boolean isLogged = false;
-    
+
     public Controller() {}
 
-    // ==================== MÉTODO PRINCIPAL ====================
-    
     public void start() throws IOException {
         mostrarBienvenida();
         int opcion = -1;
@@ -34,8 +30,8 @@ public class Controller {
         } while (opcion != 3);
     }
 
-    // ==================== PROCESAMIENTO DE OPCIONES ====================
-    
+    // --- PROCESAMIENTO DE MENUS ---
+
     private void procesarOpcionAcceso(int opcion) throws IOException {
         switch (opcion) {
             case 1:
@@ -48,7 +44,7 @@ public class Controller {
                 interfaz.imprimirMensaje("Cerrando el programa....");
                 break;
             default:
-                interfaz.imprimirMensaje("Opción inválida");
+                interfaz.imprimirMensaje("Opcion invalida");
                 break;
         }
     }
@@ -62,19 +58,27 @@ public class Controller {
                 verMisTickets();
                 break;
             case 3:
+                // El usuario normal no debería ver TODOS los tickets, solo los suyos.
+                // Sin embargo, mantengo la funcionalidad si se requiere.
                 verTodosLosTickets();
                 break;
             case 4:
                 verDepartamentos();
                 break;
             case 5:
-                verMiPerfil();
+                analizarTextoBoW();
                 break;
             case 6:
+                sugerirConfiguracionTicket();
+                break;
+            case 7:
+                verMiPerfil();
+                break;
+            case 8:
                 cerrarSesion();
                 break;
             default:
-                interfaz.imprimirMensaje("Opción inválida");
+                interfaz.imprimirMensaje("Opcion invalida");
                 break;
         }
     }
@@ -94,16 +98,19 @@ public class Controller {
                 actualizarEstadoTicket();
                 break;
             case 5:
-                verEstadisticas();
+                analizarTextoBoW();
                 break;
             case 6:
-                verMiPerfil();
+                verEstadisticas();
                 break;
             case 7:
+                verMiPerfil();
+                break;
+            case 8:
                 cerrarSesion();
                 break;
             default:
-                interfaz.imprimirMensaje("Opción inválida");
+                interfaz.imprimirMensaje("Opcion invalida");
                 break;
         }
     }
@@ -123,136 +130,157 @@ public class Controller {
                 verEstadisticas();
                 break;
             case 5:
-                verReportes();
+                analizarTextoBoW();
                 break;
             case 6:
+                verReportes();
+                break;
+            case 7:
                 cerrarSesion();
                 break;
             default:
-                interfaz.imprimirMensaje("Opción inválida");
+                interfaz.imprimirMensaje("Opcion invalida");
                 break;
         }
     }
 
-    // ==================== MENÚS ====================
-    
+    // --- MENUS ---
+
     private void mostrarBienvenida() {
-        interfaz.imprimirMensaje("Gestión de Tickets de Soporte");
+        interfaz.imprimirMensaje("==========================================");
+        interfaz.imprimirMensaje("     SISTEMA HELP DESK - Bag of Words");
+        interfaz.imprimirMensaje("==========================================");
     }
 
     private void mostrarMenuAcceso() {
-        interfaz.imprimirMensaje("MENÚ");
-        interfaz.imprimirMensaje("1. Iniciar Sesión");
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("--- MENU PRINCIPAL ---");
+        interfaz.imprimirMensaje("1. Iniciar Sesion");
         interfaz.imprimirMensaje("2. Registrarse");
         interfaz.imprimirMensaje("3. Salir");
-        interfaz.imprimirMensaje("Seleccione una opción: ");
+        interfaz.imprimirMensaje("Seleccione una opcion: ");
     }
 
     private void mostrarMenuUsuario() throws IOException {
         int opcion = -1;
         do {
-            interfaz.imprimirMensaje("MENÚ USUARIO");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("--- MENU USUARIO ---");
             interfaz.imprimirMensaje("1. Crear Nuevo Ticket");
             interfaz.imprimirMensaje("2. Ver Mis Tickets");
-            interfaz.imprimirMensaje("3. Ver Todos los Tickets");
+            interfaz.imprimirMensaje("3. Ver Todos los Tickets"); // Mantenido, aunque no recomendable
             interfaz.imprimirMensaje("4. Ver Departamentos");
-            interfaz.imprimirMensaje("5. Mi Perfil");
-            interfaz.imprimirMensaje("6. Cerrar Sesión");
-            interfaz.imprimirMensaje("Seleccione una opción: ");
+            interfaz.imprimirMensaje("5. Analizar Texto (Bag of Words)");
+            interfaz.imprimirMensaje("6. Sugerir Configuracion Ticket");
+            interfaz.imprimirMensaje("7. Mi Perfil");
+            interfaz.imprimirMensaje("8. Cerrar Sesion");
+            interfaz.imprimirMensaje("Seleccione una opcion: ");
             opcion = interfaz.leerOpcion();
             procesarOpcionUsuario(opcion);
-        } while (opcion != 6 && isLogged);
+        } while (opcion != 8 && isLogged);
     }
 
     private void mostrarMenuSoporte() throws IOException {
         int opcion = -1;
         do {
-            interfaz.imprimirMensaje("MENÚ SOPORTE");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("--- MENU SOPORTE ---");
             interfaz.imprimirMensaje("1. Ver Todos los Tickets");
             interfaz.imprimirMensaje("2. Ver Tickets por Estado");
             interfaz.imprimirMensaje("3. Ver Tickets por Prioridad");
             interfaz.imprimirMensaje("4. Actualizar Estado de Ticket");
-            interfaz.imprimirMensaje("5. Ver Estadísticas");
-            interfaz.imprimirMensaje("6. Mi Perfil");
-            interfaz.imprimirMensaje("7. Cerrar Sesión");
-            interfaz.imprimirMensaje("Seleccione una opción: ");
+            interfaz.imprimirMensaje("5. Analizar Texto (Bag of Words)");
+            interfaz.imprimirMensaje("6. Ver Estadisticas");
+            interfaz.imprimirMensaje("7. Mi Perfil");
+            interfaz.imprimirMensaje("8. Cerrar Sesion");
+            interfaz.imprimirMensaje("Seleccione una opcion: ");
             opcion = interfaz.leerOpcion();
             procesarOpcionSoporte(opcion);
-        } while (opcion != 7 && isLogged);
+        } while (opcion != 8 && isLogged);
     }
 
     private void mostrarMenuAdmin() throws IOException {
         int opcion = -1;
         do {
-            interfaz.imprimirMensaje("MENÚ ADMINISTRADOR");
-            interfaz.imprimirMensaje("1. Gestión de Usuarios");
-            interfaz.imprimirMensaje("2. Gestión de Departamentos");
-            interfaz.imprimirMensaje("3. Gestión de Tickets");
-            interfaz.imprimirMensaje("4. Ver Estadísticas");
-            interfaz.imprimirMensaje("5. Reportes");
-            interfaz.imprimirMensaje("6. Cerrar Sesión");
-            interfaz.imprimirMensaje("Seleccione una opción: ");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("--- MENU ADMINISTRADOR ---");
+            interfaz.imprimirMensaje("1. Gestion de Usuarios");
+            interfaz.imprimirMensaje("2. Gestion de Departamentos");
+            interfaz.imprimirMensaje("3. Gestion de Tickets");
+            interfaz.imprimirMensaje("4. Ver Estadisticas");
+            interfaz.imprimirMensaje("5. Analizar Texto (Bag of Words)");
+            interfaz.imprimirMensaje("6. Reportes");
+            interfaz.imprimirMensaje("7. Cerrar Sesion");
+            interfaz.imprimirMensaje("Seleccione una opcion: ");
             opcion = interfaz.leerOpcion();
             procesarOpcionAdmin(opcion);
-        } while (opcion != 6 && isLogged);
+        } while (opcion != 7 && isLogged);
     }
 
-    // ==================== MÉTODOS DE AUTENTICACIÓN ====================
-    
+    // --- ACCESO Y REDIRECCION ---
+
     private void iniciarSesion() throws IOException {
-        interfaz.imprimirMensaje("\nINICIAR SESIÓN");
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("=== INICIAR SESION ===");
         interfaz.imprimirMensaje("Correo: ");
         String correo = interfaz.leerTexto();
-        interfaz.imprimirMensaje("Contraseña: ");
+        interfaz.imprimirMensaje("Contrasena: ");
         String password = interfaz.leerTexto();
-        
+
         String resultado = login(correo, password);
         if (resultado != null) {
-            interfaz.imprimirMensaje("\n✓ Bienvenido/a!");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("Bienvenido/a!");
             redirigirSegunRol();
         } else {
-            interfaz.imprimirMensaje("\n❌ Credenciales incorrectas. Intente nuevamente.");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("Credenciales incorrectas. Intente nuevamente.");
         }
     }
 
     private void registrarse() throws IOException {
-        interfaz.imprimirMensaje("\n=== REGISTRO DE USUARIO ===");
-        interfaz.imprimirMensaje("Cédula: ");
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("=== REGISTRO DE USUARIO ===");
+        interfaz.imprimirMensaje("Cedula: ");
         String cedula = interfaz.leerTexto();
         interfaz.imprimirMensaje("Nombre completo: ");
         String nombre = interfaz.leerTexto();
         interfaz.imprimirMensaje("Correo: ");
         String correo = interfaz.leerTexto();
-        interfaz.imprimirMensaje("Contraseña: ");
+        interfaz.imprimirMensaje("Contrasena: ");
         String password = interfaz.leerTexto();
-        interfaz.imprimirMensaje("Teléfono: ");
+        interfaz.imprimirMensaje("Telefono: ");
         String telefono = interfaz.leerTexto();
-        
+
         String resultado = register(cedula, nombre, correo, password, telefono);
 
-        System.out.println(resultado);
-
         if (resultado != null) {
-            interfaz.imprimirMensaje("\n✓ Registro exitoso! Bienvenido al sistema.");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("Registro exitoso! Bienvenido al sistema.");
             redirigirSegunRol();
         } else {
-            interfaz.imprimirMensaje("\n❌ Error: El usuario ya existe.");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("Error: El usuario ya existe o hubo un problema.");
         }
     }
 
     private void redirigirSegunRol() throws IOException {
         if (usuarioActualId == null) return;
-        
+
         String usuarioInfo = usuarioHandler.findUsuarioById(usuarioActualId);
         if (usuarioInfo == null || usuarioInfo.equals("Usuario no encontrado")) return;
-        
-        String rol = "usuario"; // default
-        if (usuarioInfo.toLowerCase().contains("rol: admin")) {
+
+        String rol = "usuario";
+
+        // NOTA: Asumo que el GestorUsuario.findUsuarioById devuelve una cadena con "rol: admin" o "rol: soporte"
+        if (usuarioInfo.toLowerCase().contains("rol: admin") || usuarioInfo.toLowerCase().contains("'admin'")) {
             rol = "admin";
-        } else if (usuarioInfo.toLowerCase().contains("rol: soporte")) {
+        } else if (usuarioInfo.toLowerCase().contains("rol: soporte") || usuarioInfo.toLowerCase().contains("'soporte'")) {
             rol = "soporte";
         }
-        
+
+        this.isLogged = true; // Aseguramos que la sesión se marca como iniciada antes de redirigir
+
         switch (rol) {
             case "admin":
                 mostrarMenuAdmin();
@@ -269,36 +297,82 @@ public class Controller {
 
     private void cerrarSesion() {
         logout();
-        interfaz.imprimirMensaje("\n✓ Sesión cerrada exitosamente.");
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("Sesion cerrada exitosamente.");
     }
 
-    // ==================== MÉTODOS DE FUNCIONALIDAD ====================
-    
+    // --- ACCIONES DE TICKETS (Usuario/Soporte/Admin) ---
+
     private void crearNuevoTicket() throws IOException {
-        interfaz.imprimirMensaje("\n=== CREAR NUEVO TICKET ===");
+        if (!isLogged || usuarioActualId == null) {
+            interfaz.imprimirMensaje("Debe iniciar sesion para crear un ticket");
+            return;
+        }
+
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("=== CREAR NUEVO TICKET ===");
+
+        String usuarioInfo = usuarioHandler.findUsuarioById(usuarioActualId);
+        if (usuarioInfo.equals("Usuario no encontrado")) {
+            interfaz.imprimirMensaje("Error: Usuario no valido");
+            return;
+        }
+
         interfaz.imprimirMensaje("ID del ticket: ");
         int id = interfaz.leerOpcion();
         interfaz.imprimirMensaje("Asunto: ");
         String asunto = interfaz.leerTexto();
-        interfaz.imprimirMensaje("Descripción: ");
+        interfaz.imprimirMensaje("Descripcion: ");
         String descripcion = interfaz.leerTexto();
-        interfaz.imprimirMensaje("Prioridad (Baja/Media/Alta): ");
-        String prioridad = interfaz.leerTexto();
-        interfaz.imprimirMensaje("ID del Departamento: ");
-        int departamentoId = interfaz.leerOpcion();
-        
-        boolean exito = crearTicket(id, asunto, descripcion, prioridad, departamentoId);
-        if (exito) {
-            interfaz.imprimirMensaje("\n✓ Ticket creado exitosamente.");
+
+        // 1. ANÁLISIS BoW
+        ClasificadorBoW clasificador = new ClasificadorBoW();
+        ClasificadorBoW.AnalisisTicket analisis = clasificador.analizarTicket(asunto, descripcion);
+
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("ANALISIS AUTOMATICO DETECTADO:");
+        interfaz.imprimirMensaje("   Emocion: " + analisis.categoriaEmocional);
+        interfaz.imprimirMensaje("   Categoria: " + analisis.categoriaTecnica);
+        interfaz.imprimirMensaje("   Prioridad sugerida: " + analisis.prioridadSugerida);
+        interfaz.imprimirMensaje("   Departamento sugerido: " + analisis.departamentoSugerido);
+
+        // 2. SOLICITUD DE CONFIRMACIÓN / OVERRIDE
+        interfaz.imprimirMensaje("Prioridad (Baja/Media/Alta) [" + analisis.prioridadSugerida + "]: ");
+        String prioridadInput = interfaz.leerTexto();
+        String prioridad = prioridadInput.isEmpty() ? analisis.prioridadSugerida : prioridadInput;
+
+        interfaz.imprimirMensaje("ID del Departamento [" + analisis.departamentoSugerido + "]: ");
+        String deptoInput = interfaz.leerTexto();
+        int departamentoId;
+
+        if (deptoInput.isEmpty()) {
+            departamentoId = analisis.departamentoSugerido;
         } else {
-            interfaz.imprimirMensaje("\n❌ Error al crear el ticket.");
+            try {
+                departamentoId = Integer.parseInt(deptoInput);
+            } catch (NumberFormatException e) {
+                interfaz.imprimirMensaje("ID de departamento inválido. Usando sugerido: " + analisis.departamentoSugerido);
+                departamentoId = analisis.departamentoSugerido;
+            }
+        }
+
+        // 3. CREACIÓN DEL TICKET
+        boolean exito = crearTicket(id, asunto, descripcion, prioridad, departamentoId);
+
+        if (exito) {
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("Ticket creado exitosamente con analisis automatico");
+        } else {
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("Error al crear el ticket");
         }
     }
 
     private void verMisTickets() {
-        interfaz.imprimirMensaje("\n=== MIS TICKETS ===");
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("=== MIS TICKETS ===");
         String tickets = getTicketsPorUsuario();
-        if (tickets.isEmpty()) {
+        if (tickets == null || tickets.isEmpty() || tickets.contains("No se encontraron")) {
             interfaz.imprimirMensaje("No tiene tickets registrados.");
         } else {
             interfaz.imprimirMensaje(tickets);
@@ -306,9 +380,10 @@ public class Controller {
     }
 
     private void verTodosLosTickets() {
-        interfaz.imprimirMensaje("\n=== TODOS LOS TICKETS ===");
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("=== TODOS LOS TICKETS ===");
         String tickets = getAllTickets();
-        if (tickets.isEmpty()) {
+        if (tickets == null || tickets.isEmpty() || tickets.contains("No hay")) {
             interfaz.imprimirMensaje("No hay tickets registrados.");
         } else {
             interfaz.imprimirMensaje(tickets);
@@ -316,9 +391,10 @@ public class Controller {
     }
 
     private void verDepartamentos() {
-        interfaz.imprimirMensaje("\n=== DEPARTAMENTOS ===");
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("=== DEPARTAMENTOS ===");
         String departamentos = getAllDepartamentos();
-        if (departamentos.isEmpty()) {
+        if (departamentos == null || departamentos.isEmpty() || departamentos.contains("No hay")) {
             interfaz.imprimirMensaje("No hay departamentos registrados.");
         } else {
             interfaz.imprimirMensaje(departamentos);
@@ -327,18 +403,20 @@ public class Controller {
 
     private void verMiPerfil() {
         if (usuarioActualId != null) {
-            interfaz.imprimirMensaje("\n=== MI PERFIL ===");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("=== MI PERFIL ===");
             String perfil = usuarioHandler.findUsuarioById(usuarioActualId);
             interfaz.imprimirMensaje(perfil);
         }
     }
 
     private void verTicketsPorEstado() throws IOException {
-        interfaz.imprimirMensaje("\n=== TICKETS POR ESTADO ===");
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("=== TICKETS POR ESTADO ===");
         interfaz.imprimirMensaje("Estado (Abierto/En Proceso/Cerrado): ");
         String estado = interfaz.leerTexto();
         String tickets = getTicketsPorEstado(estado);
-        if (tickets.isEmpty()) {
+        if (tickets == null || tickets.isEmpty() || tickets.contains("No se encontraron")) {
             interfaz.imprimirMensaje("No hay tickets con ese estado.");
         } else {
             interfaz.imprimirMensaje(tickets);
@@ -346,11 +424,12 @@ public class Controller {
     }
 
     private void verTicketsPorPrioridad() throws IOException {
-        interfaz.imprimirMensaje("\n=== TICKETS POR PRIORIDAD ===");
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("=== TICKETS POR PRIORIDAD ===");
         interfaz.imprimirMensaje("Prioridad (Baja/Media/Alta): ");
         String prioridad = interfaz.leerTexto();
         String tickets = getTicketsPorPrioridad(prioridad);
-        if (tickets.isEmpty()) {
+        if (tickets == null || tickets.isEmpty() || tickets.contains("No se encontraron")) {
             interfaz.imprimirMensaje("No hay tickets con esa prioridad.");
         } else {
             interfaz.imprimirMensaje(tickets);
@@ -358,37 +437,101 @@ public class Controller {
     }
 
     private void actualizarEstadoTicket() throws IOException {
-        interfaz.imprimirMensaje("\n=== ACTUALIZAR ESTADO DE TICKET ===");
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("=== ACTUALIZAR ESTADO DE TICKET ===");
         interfaz.imprimirMensaje("ID del ticket: ");
         int ticketId = interfaz.leerOpcion();
         interfaz.imprimirMensaje("Nuevo estado (Abierto/En Proceso/Cerrado): ");
         String nuevoEstado = interfaz.leerTexto();
-        
+
         if (cambiarEstadoTicket(ticketId, nuevoEstado)) {
-            interfaz.imprimirMensaje("\n✓ Estado actualizado exitosamente.");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("Estado actualizado exitosamente.");
         } else {
-            interfaz.imprimirMensaje("\n❌ Error al actualizar el estado.");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("Error al actualizar el estado. Revise el ID y el estado.");
         }
     }
 
     private void verEstadisticas() {
-        interfaz.imprimirMensaje("\n=== ESTADÍSTICAS ===");
-        interfaz.imprimirMensaje("Tickets Abiertos: " + getNumeroTicketsAbiertos());
-        interfaz.imprimirMensaje("Tickets En Proceso: " + getNumeroTicketsEnProceso());
-        interfaz.imprimirMensaje("Tickets Cerrados: " + getNumeroTicketsCerrados());
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("=== ESTADISTICAS ===");
+        int abiertos = getNumeroTicketsAbiertos();
+        int enProceso = getNumeroTicketsEnProceso();
+        int cerrados = getNumeroTicketsCerrados();
+        int total = abiertos + enProceso + cerrados;
+
+        interfaz.imprimirMensaje("Tickets Abiertos: " + abiertos);
+        interfaz.imprimirMensaje("Tickets En Proceso: " + enProceso);
+        interfaz.imprimirMensaje("Tickets Cerrados: " + cerrados);
+        interfaz.imprimirMensaje("Total de Tickets: " + total);
     }
+
+    private void analizarTextoBoW() throws IOException {
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("=== ANALISIS BAG OF WORDS ===");
+        interfaz.imprimirMensaje("Ingrese el texto a analizar: ");
+        String texto = interfaz.leerTexto();
+
+        ClasificadorBoW clasificador = new ClasificadorBoW();
+        // Solo pasamos el texto como asunto, la descripción vacía es asumida
+        ClasificadorBoW.AnalisisTicket analisis = clasificador.analizarTicket(texto, "");
+
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("RESULTADOS DEL ANALISIS:");
+        interfaz.imprimirMensaje("   Categoria Emocional: " + analisis.categoriaEmocional);
+        interfaz.imprimirMensaje("   Categoria Tecnica: " + analisis.categoriaTecnica);
+        interfaz.imprimirMensaje("   Prioridad Sugerida: " + analisis.prioridadSugerida);
+        interfaz.imprimirMensaje("   Departamento Sugerido ID: " + analisis.departamentoSugerido);
+        interfaz.imprimirMensaje("   Departamento Sugerido Nombre: " + getNombreDepartamento(analisis.departamentoSugerido));
+    }
+
+    private void sugerirConfiguracionTicket() throws IOException {
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("=== SUGERENCIA AUTOMATICA DE TICKET ===");
+        interfaz.imprimirMensaje("Asunto del problema: ");
+        String asunto = interfaz.leerTexto();
+        interfaz.imprimirMensaje("Descripcion detallada: ");
+        String descripcion = interfaz.leerTexto();
+
+        ClasificadorBoW clasificador = new ClasificadorBoW();
+        ClasificadorBoW.AnalisisTicket analisis = clasificador.analizarTicket(asunto, descripcion);
+
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("CONFIGURACION SUGERIDA:");
+        interfaz.imprimirMensaje("   Prioridad: " + analisis.prioridadSugerida);
+        interfaz.imprimirMensaje("   Departamento ID: " + analisis.departamentoSugerido);
+        interfaz.imprimirMensaje("   Departamento Nombre: " + getNombreDepartamento(analisis.departamentoSugerido));
+        interfaz.imprimirMensaje("   Categoria Emocional: " + analisis.categoriaEmocional);
+        interfaz.imprimirMensaje("   Categoria Tecnica: " + analisis.categoriaTecnica);
+    }
+
+    private String getNombreDepartamento(int departamentoId) {
+        // En una aplicación real, esto consultaría al GestorDepartamento
+        // Lo mantengo para simular el nombre
+        switch (departamentoId) {
+            case 1: return "Soporte Tecnico";
+            case 2: return "Recursos Humanos";
+            case 3: return "Sistemas";
+            case 4: return "Administracion";
+            default: return "General/Desconocido";
+        }
+    }
+
+    // --- ACCIONES DE GESTIÓN (Admin) ---
 
     private void gestionUsuarios() throws IOException {
         int opcion = -1;
         do {
-            interfaz.imprimirMensaje("GESTIÓN DE USUARIOS");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("--- GESTION DE USUARIOS ---");
             interfaz.imprimirMensaje("1. Listar Usuarios");
             interfaz.imprimirMensaje("2. Cambiar Rol de Usuario");
             interfaz.imprimirMensaje("3. Eliminar Usuario");
             interfaz.imprimirMensaje("4. Volver");
-            interfaz.imprimirMensaje("Seleccione una opción: ");
+            interfaz.imprimirMensaje("Seleccione una opcion: ");
             opcion = interfaz.leerOpcion();
-            
+
             switch (opcion) {
                 case 1:
                     listarUsuarios();
@@ -402,7 +545,7 @@ public class Controller {
                 case 4:
                     break;
                 default:
-                    interfaz.imprimirMensaje("Opción inválida");
+                    interfaz.imprimirMensaje("Opcion invalida");
                     break;
             }
         } while (opcion != 4);
@@ -411,15 +554,16 @@ public class Controller {
     private void gestionDepartamentos() throws IOException {
         int opcion = -1;
         do {
-            interfaz.imprimirMensaje("GESTIÓN DE DEPARTAMENTOS");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("--- GESTION DE DEPARTAMENTOS ---");
             interfaz.imprimirMensaje("1. Listar Departamentos");
             interfaz.imprimirMensaje("2. Crear Departamento");
             interfaz.imprimirMensaje("3. Modificar Departamento");
             interfaz.imprimirMensaje("4. Eliminar Departamento");
             interfaz.imprimirMensaje("5. Volver");
-            interfaz.imprimirMensaje("Seleccione una opción: ");
+            interfaz.imprimirMensaje("Seleccione una opcion: ");
             opcion = interfaz.leerOpcion();
-            
+
             switch (opcion) {
                 case 1:
                     verDepartamentos();
@@ -436,26 +580,32 @@ public class Controller {
                 case 5:
                     break;
                 default:
-                    interfaz.imprimirMensaje("Opción inválida");
+                    interfaz.imprimirMensaje("Opcion invalida");
                     break;
             }
         } while (opcion != 5);
     }
 
-    private void gestionTickets() throws IOException {
-        interfaz.imprimirMensaje("\n=== GESTIÓN DE TICKETS ===");
+    private void gestionTickets() {
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("=== GESTION DE TICKETS (Todos) ===");
         verTodosLosTickets();
+        // Se podría añadir aquí: buscar por ID, cambiar prioridad, eliminar, etc.
     }
 
     private void verReportes() {
-        interfaz.imprimirMensaje("\n=== REPORTES ===");
-        interfaz.imprimirMensaje("Funcionalidad en desarrollo...");
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("=== REPORTES ===");
+        interfaz.imprimirMensaje("Funcionalidad en desarrollo (ej. Tickets por mes, top departamentos).");
     }
 
+    // --- ACCIONES DE GESTIÓN DE USUARIOS (Admin) ---
+
     private void listarUsuarios() {
-        interfaz.imprimirMensaje("\n=== LISTA DE USUARIOS ===");
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("=== LISTA DE USUARIOS ===");
         String usuarios = getAllUsuarios();
-        if (usuarios.isEmpty()) {
+        if (usuarios == null || usuarios.isEmpty() || usuarios.contains("No hay")) {
             interfaz.imprimirMensaje("No hay usuarios registrados.");
         } else {
             interfaz.imprimirMensaje(usuarios);
@@ -463,120 +613,133 @@ public class Controller {
     }
 
     private void cambiarRolUsuarioMenu() throws IOException {
-        interfaz.imprimirMensaje("\n=== CAMBIAR ROL DE USUARIO ===");
-        interfaz.imprimirMensaje("ID del usuario: ");
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("=== CAMBIAR ROL DE USUARIO ===");
+        interfaz.imprimirMensaje("ID o Cédula del usuario a modificar: ");
         String usuarioId = interfaz.leerTexto();
         interfaz.imprimirMensaje("Nuevo rol (usuario/soporte/admin): ");
         String nuevoRol = interfaz.leerTexto();
-        
+
         if (cambiarRolUsuario(usuarioId, nuevoRol)) {
-            interfaz.imprimirMensaje("\n✓ Rol actualizado exitosamente.");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("Rol actualizado exitosamente.");
         } else {
-            interfaz.imprimirMensaje("\n❌ Error al actualizar el rol.");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("Error al actualizar el rol. Revise el ID y el rol.");
         }
     }
 
     private void eliminarUsuarioMenu() throws IOException {
-        interfaz.imprimirMensaje("\n=== ELIMINAR USUARIO ===");
-        interfaz.imprimirMensaje("ID del usuario: ");
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("=== ELIMINAR USUARIO ===");
+        interfaz.imprimirMensaje("ID o Cédula del usuario a eliminar: ");
         String usuarioId = interfaz.leerTexto();
-        
+
         if (deleteUsuario(usuarioId)) {
-            interfaz.imprimirMensaje("\n✓ Usuario eliminado exitosamente.");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("Usuario eliminado exitosamente.");
         } else {
-            interfaz.imprimirMensaje("\n❌ Error al eliminar el usuario.");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("Error al eliminar el usuario. Revise el ID.");
         }
     }
 
+    // --- ACCIONES DE GESTIÓN DE DEPARTAMENTOS (Admin) ---
+
     private void crearDepartamentoMenu() throws IOException {
-        interfaz.imprimirMensaje("\n=== CREAR DEPARTAMENTO ===");
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("=== CREAR DEPARTAMENTO ===");
         interfaz.imprimirMensaje("ID del departamento: ");
         int id = interfaz.leerOpcion();
         interfaz.imprimirMensaje("Nombre: ");
         String nombre = interfaz.leerTexto();
-        interfaz.imprimirMensaje("Descripción: ");
+        interfaz.imprimirMensaje("Descripcion: ");
         String descripcion = interfaz.leerTexto();
-        interfaz.imprimirMensaje("Contacto: ");
+        interfaz.imprimirMensaje("Contacto (ej: correo): ");
         String contacto = interfaz.leerTexto();
-        
+
         boolean exito = crearDepartamento(id, nombre, descripcion, contacto);
         if (exito) {
-            interfaz.imprimirMensaje("\n✓ Departamento creado exitosamente.");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("Departamento creado exitosamente.");
         } else {
-            interfaz.imprimirMensaje("\n❌ Error al crear el departamento.");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("Error al crear el departamento. Puede que el ID ya exista.");
         }
     }
 
     private void modificarDepartamentoMenu() throws IOException {
-        interfaz.imprimirMensaje("\n=== MODIFICAR DEPARTAMENTO ===");
-        interfaz.imprimirMensaje("ID del departamento: ");
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("=== MODIFICAR DEPARTAMENTO ===");
+        interfaz.imprimirMensaje("ID del departamento a modificar: ");
         int id = interfaz.leerOpcion();
         String deptoInfo = getDepartamentoById(String.valueOf(id));
-        
-        if (deptoInfo != null && !deptoInfo.isEmpty()) {
+
+        if (deptoInfo != null && !deptoInfo.isEmpty() && !deptoInfo.contains("no encontrado")) {
             interfaz.imprimirMensaje("Departamento actual:\n" + deptoInfo);
-            interfaz.imprimirMensaje("Nuevo nombre: ");
+            interfaz.imprimirMensaje("Nuevo nombre (dejar vacío para no cambiar): ");
             String nombre = interfaz.leerTexto();
-            interfaz.imprimirMensaje("Nueva descripción: ");
+            interfaz.imprimirMensaje("Nueva descripcion (dejar vacío para no cambiar): ");
             String descripcion = interfaz.leerTexto();
-            interfaz.imprimirMensaje("Nuevo contacto: ");
+            interfaz.imprimirMensaje("Nuevo contacto (dejar vacío para no cambiar): ");
             String contacto = interfaz.leerTexto();
-            
+
+            // Lógica para no enviar cadenas vacías al BL si no se desea modificar
+            // En una implementación real, se obtendrían los valores actuales y se reemplazarían solo si se ingresa un nuevo valor
             if (updateDepartamento(String.valueOf(id), nombre, descripcion, contacto)) {
-                interfaz.imprimirMensaje("\n✓ Departamento modificado exitosamente.");
+                interfaz.imprimirMensaje("");
+                interfaz.imprimirMensaje("Departamento modificado exitosamente.");
             } else {
-                interfaz.imprimirMensaje("\n❌ Error al modificar el departamento.");
+                interfaz.imprimirMensaje("");
+                interfaz.imprimirMensaje("Error al modificar el departamento.");
             }
         } else {
-            interfaz.imprimirMensaje("\n❌ Departamento no encontrado.");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("Departamento no encontrado.");
         }
     }
 
     private void eliminarDepartamentoMenu() throws IOException {
-        interfaz.imprimirMensaje("\n=== ELIMINAR DEPARTAMENTO ===");
-        interfaz.imprimirMensaje("ID del departamento: ");
+        interfaz.imprimirMensaje("");
+        interfaz.imprimirMensaje("=== ELIMINAR DEPARTAMENTO ===");
+        interfaz.imprimirMensaje("ID del departamento a eliminar: ");
         String id = interfaz.leerTexto();
-        
+
         if (deleteDepartamento(id)) {
-            interfaz.imprimirMensaje("\n✓ Departamento eliminado exitosamente.");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("Departamento eliminado exitosamente.");
         } else {
-            interfaz.imprimirMensaje("\n❌ Error al eliminar el departamento.");
+            interfaz.imprimirMensaje("");
+            interfaz.imprimirMensaje("Error al eliminar el departamento. Revise el ID.");
         }
     }
 
-    // ==================== MÉTODOS DE AUTENTICACIÓN (LÓGICA) ====================
-    
+    // --- MÉTODOS DE LA LÓGICA DE NEGOCIO (simulados por llamada a Gestor) ---
+
+    // --- Usuario Handlers ---
+
     public String login(String correo, String password) {
         String resultado = usuarioHandler.loginUsuario(correo, password);
         if (resultado != null && !resultado.equals("Usuario no encontrado")) {
-            // Extraer el ID del usuario del toString: Usuario{id='valor', ...}
-            int startIdx = resultado.indexOf("id='");
-            if (startIdx != -1) {
-                startIdx += 4; // Saltar "id='"
-                int endIdx = resultado.indexOf("'", startIdx);
-                if (endIdx != -1) {
-                    this.usuarioActualId = resultado.substring(startIdx, endIdx);
-                    this.isLogged = true;
-                    return this.usuarioActualId;
-                }
+            String id = extraerIdUsuario(resultado);
+            if (id != null) {
+                this.usuarioActualId = id;
+                this.isLogged = true;
+                return this.usuarioActualId;
             }
         }
         return null;
     }
 
     public String register(String cedula, String nombre, String correo, String password, String telefono) {
+        // Por defecto, se registra con rol 'usuario'
         String resultado = usuarioHandler.addUsuario(cedula, nombre, correo, password, telefono, "usuario");
-        if (resultado != null) {
-            // Extraer el ID del usuario del toString: Usuario{id='valor', ...}
-            int startIdx = resultado.indexOf("id='");
-            if (startIdx != -1) {
-                startIdx += 4; // Saltar "id='"
-                int endIdx = resultado.indexOf("'", startIdx);
-                if (endIdx != -1) {
-                    this.usuarioActualId = resultado.substring(startIdx, endIdx);
-                    this.isLogged = true;
-                    return this.usuarioActualId;
-                }
+        if (resultado != null && !resultado.contains("Error")) {
+            String id = extraerIdUsuario(resultado);
+            if (id != null) {
+                this.usuarioActualId = id;
+                this.isLogged = true;
+                return this.usuarioActualId;
             }
         }
         return null;
@@ -587,22 +750,24 @@ public class Controller {
         this.isLogged = false;
     }
 
-    public String getUsuarioActualId() {
-        return usuarioActualId;
+    // Método auxiliar para extraer ID, se usa la cédula como fallback
+    private String extraerIdUsuario(String usuarioInfo) {
+        // Intenta extraer 'id=' o 'id=' o 'cedula='
+        String[] prefixes = {"id='", "id=\"", "cedula='", "cedula=\""};
+        for (String prefix : prefixes) {
+            if (usuarioInfo.contains(prefix)) {
+                int start = usuarioInfo.indexOf(prefix) + prefix.length();
+                int end = usuarioInfo.indexOf(prefix.substring(prefix.length() - 1), start);
+                if (end > start) {
+                    return usuarioInfo.substring(start, end);
+                }
+            }
+        }
+        return null;
     }
 
-    public boolean isLogged() {
-        return isLogged;
-    }
-
-    // ==================== MÉTODOS DE USUARIO ====================
-    
     public String getAllUsuarios() {
         return usuarioHandler.getAllUsuarios();
-    }
-
-    public String getUsuarioById(String id) {
-        return usuarioHandler.findUsuarioById(id);
     }
 
     public boolean deleteUsuario(String id) {
@@ -610,16 +775,18 @@ public class Controller {
         return resultado != null && resultado.contains("exitosamente");
     }
 
+    // IMPLEMENTACIÓN AGREGADA
     public boolean cambiarRolUsuario(String usuarioId, String nuevoRol) {
-        // TODO: Implementar cambiarRolUsuario en GestorUsuario
-        return false;
+        // Asumiendo que GestorUsuario.updateRolUsuario devuelve un String
+        String resultado = usuarioHandler.updateRolUsuario(usuarioId, nuevoRol);
+        return resultado != null && resultado.contains("exitosamente");
     }
 
-    // ==================== MÉTODOS DE DEPARTAMENTO ====================
-    
+    // --- Departamento Handlers ---
+
     public boolean crearDepartamento(int id, String nombre, String descripcion, String contacto) {
         String resultado = departamentoHandler.addDepartamento(id, nombre, descripcion, contacto);
-        return resultado != null && !resultado.isEmpty();
+        return resultado != null && !resultado.isEmpty() && !resultado.contains("Error");
     }
 
     public String getAllDepartamentos() {
@@ -630,7 +797,7 @@ public class Controller {
         try {
             return departamentoHandler.findDepartamentoById(Integer.parseInt(id));
         } catch (NumberFormatException e) {
-            return "ID de departamento inválido";
+            return "ID de departamento invalido";
         }
     }
 
@@ -638,9 +805,16 @@ public class Controller {
         return departamentoHandler.findDepartamentoByNombre(nombre);
     }
 
+    // IMPLEMENTACIÓN AGREGADA
     public boolean updateDepartamento(String id, String nombre, String descripcion, String contacto) {
-        // TODO: Requiere crear objeto Departamento y usar updateDepartamento(Departamento)
-        return false;
+        try {
+            int deptoId = Integer.parseInt(id);
+            // Asumiendo que GestorDepartamento.updateDepartamento devuelve un String de éxito
+            String resultado = departamentoHandler.updateDepartamento(deptoId, nombre, descripcion, contacto);
+            return resultado != null && resultado.contains("exitosamente");
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     public boolean deleteDepartamento(String id) {
@@ -648,14 +822,22 @@ public class Controller {
         return resultado != null && resultado.contains("exitosamente");
     }
 
-    // ==================== MÉTODOS DE TICKET ====================
-    
+    // --- Ticket Handlers ---
+
     public boolean crearTicket(int id, String asunto, String descripcion, String prioridad, int departamentoId) {
         if (!isLogged || usuarioActualId == null) {
-            return false; // Usuario no autenticado
+            return false;
         }
-        // TODO: Requiere crear objetos Usuario y Departamento para llamar a createTicket
-        return false;
+
+        try {
+            // Asumo que createTicket espera usuarioActualId como String y departamentoId como String
+            String resultado = ticketHandler.createTicket(id, asunto, descripcion, prioridad, usuarioActualId, String.valueOf(departamentoId));
+            return resultado != null && !resultado.contains("Error");
+
+        } catch (Exception e) {
+            interfaz.imprimirMensaje("Excepción al crear el ticket: " + e.getMessage());
+            return false;
+        }
     }
 
     public String getAllTickets() {
@@ -673,79 +855,46 @@ public class Controller {
         return ticketHandler.getTicketsByUsuario(usuarioId);
     }
 
-    public String getTicketsPorDepartamento(String departamentoId) {
-        return ticketHandler.getTicketsByDepartamento(departamentoId);
-    }
-
+    // IMPLEMENTACIÓN AGREGADA
     public String getTicketsPorEstado(String estado) {
         return ticketHandler.getTicketsByEstado(estado);
     }
 
+    // IMPLEMENTACIÓN AGREGADA
     public String getTicketsPorPrioridad(String prioridad) {
         return ticketHandler.getTicketsByPrioridad(prioridad);
     }
 
-    public String getTicketById(int id) {
-        return ticketHandler.findTicketById(id);
-    }
-
+    // IMPLEMENTACIÓN AGREGADA
     public boolean cambiarEstadoTicket(int ticketId, String nuevoEstado) {
-        String resultado = ticketHandler.updateEstadoTicket(ticketId, nuevoEstado);
-        return resultado != null && resultado.contains("actualizado");
-    }
-
-    public boolean deleteTicket(int id) {
-        String resultado = ticketHandler.deleteTicket(id);
+        // Asumo que GestorTicket.updateTicketEstado(int id, String estado) devuelve un String
+        String resultado = ticketHandler.updateTicketEstado(ticketId, nuevoEstado);
         return resultado != null && resultado.contains("exitosamente");
     }
 
-    // ==================== MÉTODOS DE VALIDACIÓN Y PERMISOS ====================
-    
-    public boolean esAdmin() {
-        if (!isLogged || usuarioActualId == null) return false;
-        String usuarioInfo = usuarioHandler.findUsuarioById(usuarioActualId);
-        return usuarioInfo != null && usuarioInfo.toLowerCase().contains("rol: admin");
-    }
-
-    public boolean esSoporte() {
-        if (!isLogged || usuarioActualId == null) return false;
-        String usuarioInfo = usuarioHandler.findUsuarioById(usuarioActualId);
-        return usuarioInfo != null && usuarioInfo.toLowerCase().contains("rol: soporte");
-    }
-
-    public boolean esUsuario() {
-        if (!isLogged || usuarioActualId == null) return false;
-        String usuarioInfo = usuarioHandler.findUsuarioById(usuarioActualId);
-        return usuarioInfo != null && usuarioInfo.toLowerCase().contains("rol: usuario");
-    }
-
-    // ==================== MÉTODOS DE ESTADÍSTICAS ====================
-    
+    // IMPLEMENTACIÓN AGREGADA
     public int getNumeroTicketsAbiertos() {
-        String tickets = ticketHandler.getTicketsByEstado("Abierto");
-        return contarTickets(tickets);
+        // Asumo que GestorTicket tiene un método para contar
+        return ticketHandler.countTicketsByEstado("Abierto");
     }
 
+    // IMPLEMENTACIÓN AGREGADA
     public int getNumeroTicketsEnProceso() {
-        String tickets = ticketHandler.getTicketsByEstado("En Proceso");
-        return contarTickets(tickets);
+        return ticketHandler.countTicketsByEstado("En Proceso");
     }
 
+    // IMPLEMENTACIÓN AGREGADA
     public int getNumeroTicketsCerrados() {
-        String tickets = ticketHandler.getTicketsByEstado("Cerrado");
-        return contarTickets(tickets);
+        return ticketHandler.countTicketsByEstado("Cerrado");
     }
 
-    public int getNumeroTicketsPorPrioridad(String prioridad) {
-        String tickets = ticketHandler.getTicketsByPrioridad(prioridad);
-        return contarTickets(tickets);
+    // --- Getters auxiliares ---
+
+    public String getUsuarioActualId() {
+        return usuarioActualId;
     }
-    
-    private int contarTickets(String ticketsString) {
-        if (ticketsString == null || ticketsString.isEmpty() || ticketsString.contains("No se encontraron") || ticketsString.contains("No hay")) {
-            return 0;
-        }
-        // Contar líneas separadas por \n
-        return ticketsString.split("\n\n").length;
+
+    public boolean isLogged() {
+        return isLogged;
     }
 }

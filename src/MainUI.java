@@ -1,3 +1,5 @@
+package cr.ac.ucenfotec;
+
 import cr.ac.ucenfotec.tl.Controller;
 import java.io.IOException;
 
